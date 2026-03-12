@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MVI vs MVVM Experiment</title>
+  <style>
+    :root {
+      --bg: #e7eef7;
+      --panel: #ffffff;
+      --panel-2: #f6f9fd;
+      --text: #203249;
+      --muted: #5f748d;
+      --accent: #2f76cf;
+      --ok: #2f8a51;
+      --warn: #b7791f;
+      --border: #b8c9dd;
+      --chip: #e4edf8;
+      --code: #f2f6fb;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", Verdana, Tahoma, Arial, sans-serif;
+      background:
+        linear-gradient(180deg, #f7fbff 0%, #eaf1fa 45%, #dde8f6 100%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 22px 16px 56px;
+    }
+
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.2; }
+    h1 {
+      font-size: 1.9rem;
+      color: #1f4f8a;
+      text-shadow: 0 1px 0 #fff;
+    }
+    h2 {
+      font-size: 1.32rem;
+      margin-top: 24px;
+      color: #1f4f8a;
+      border-bottom: 1px solid #cad8e8;
+      padding-bottom: 4px;
+    }
+    h3 { font-size: 1.02rem; margin-top: 10px; color: #294d73; }
+    p, li { color: #29415f; }
+    a { color: var(--accent); }
+    a:hover { color: #1d5ea9; }
+
+    .lead {
+      color: #334f71;
+      margin: 0 0 14px;
+      max-width: 84ch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 14px;
+      box-shadow:
+        inset 0 1px 0 #ffffff,
+        0 1px 0 #d4e0ed;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      align-items: start;
+      background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+    }
+    .hero img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip {
+      background: var(--chip);
+      border: 1px solid var(--border);
+      color: #2f4e72;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.84rem;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .diagram svg {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
+    }
+
+    .box-title { fill: #234a77; font-size: 13px; font-weight: 600; }
+    .box-sub { fill: #4b6f97; font-size: 11px; }
+    .arrow-label { fill: #476b95; font-size: 10px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.94rem;
+      background: #fff;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background: linear-gradient(180deg, #edf4fd 0%, #d8e7fa 100%);
+      color: #25476c;
+      text-shadow: 0 1px 0 #fff;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .status { font-weight: 700; }
+    .agree { color: var(--ok); }
+    .caveat { color: var(--warn); }
+
+    .code-controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    select, button, a.btn {
+      background: linear-gradient(180deg, #ffffff 0%, #dbe8f9 100%);
+      color: #234a77;
+      border: 1px solid #98b3d3;
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 0.92rem;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 #ffffff;
+    }
+    button:hover, a.btn:hover, select:hover {
+      border-color: #6d94c4;
+      background: linear-gradient(180deg, #ffffff 0%, #cfe0f7 100%);
+    }
+
+    .code-meta {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 4px 0 10px;
+    }
+
+    pre {
+      margin: 0;
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      max-height: 560px;
+      white-space: pre;
+      font-size: 0.85rem;
+      color: #1f3550;
+    }
+
+    .muted { color: var(--muted); }
+    .refs li { margin: 6px 0; }
+    .tree {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.9rem;
+      color: #24496f;
+    }
+    .tree ul {
+      list-style: none;
+      margin: 4px 0 4px 18px;
+      padding-left: 12px;
+      border-left: 1px dotted #aac1da;
+    }
+    .tree li {
+      margin: 3px 0;
+    }
+    .tree .folder {
+      color: #355e88;
+      font-weight: 700;
+    }
+    .tree a.file-link {
+      color: #2f76cf;
+      text-decoration: none;
+    }
+    .tree a.file-link:hover {
+      text-decoration: underline;
+    }
+    .viewer-actions {
+      margin: 10px 0 8px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    code {
+      background: #eaf2fc;
+      border: 1px solid #b8cde8;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      color: #274f7c;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .grid-2 { grid-template-columns: 1fr; }
+      .code-controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel hero">
+      <div>
+        <h1>MVI vs MVVM: Experiment Findings</h1>
+        <p class="lead">
+          A compact comparison of Haskell and Kotlin implementations testing this question:
+          <strong>when MVVM is constrained to a stateless, unidirectional core, does it converge to MVI?</strong>
+        </p>
+        <div class="chips">
+          <span class="chip">Haskell MVI</span>
+          <span class="chip">Haskell MVVM</span>
+          <span class="chip">Kotlin MVVM</span>
+          <span class="chip">Kotlin MVI</span>
+          <span class="chip">Unit + Acceptance Tests</span>
+        </div>
+      </div>
+      <img src="Generated_image.png" alt="Java cup mascot and Lambda mascot in coding office" />
+    </section>
+
+    <section>
+      <h2>Direct Outcome</h2>
+      <div class="panel">
+        <p>
+          <span class="status caveat">Conclusion with scope:</span>
+          In this repo's minimal examples, MVVM and MVI share the same transition core shape
+          (<code>event + current state -> next state</code>). Removing the stateful shell
+          (<code>IORef</code> or mutable ViewModel updates) yields an MVI-style architecture.
+        </p>
+        <ul>
+          <li><span class="status agree">Agree:</span> the hypothesis is valid for these implementations.</li>
+          <li><span class="status caveat">Caveat:</span> this is a scoped finding, not a universal framework-level equivalence claim.</li>
+          <li><span class="status caveat">Caveat:</span> Kotlin MVVM test style here uses coroutines, but that depends on API/testing choices.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Architecture Diagrams</h2>
+      <div class="grid-2">
+        <article class="panel diagram">
+          <h3>MVVM in this project</h3>
+          <svg viewBox="0 0 600 210" role="img" aria-label="MVVM architecture diagram">
+            <defs>
+              <marker id="arrowA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#6ea8ff"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="50" width="130" height="70" rx="10" fill="#122545" stroke="#33598f"></rect>
+            <text x="42" y="80" class="box-title">View</text>
+            <text x="31" y="97" class="box-sub">UI reads state</text>
+
+            <rect x="230" y="35" width="155" height="100" rx="10" fill="#14315a" stroke="#3e6aa8"></rect>
+            <text x="252" y="70" class="box-title">ViewModel</text>
+            <text x="244" y="88" class="box-sub">Mutable holder</text>
+            <text x="241" y="104" class="box-sub">commands update state</text>
+
+            <rect x="455" y="50" width="125" height="70" rx="10" fill="#13243d" stroke="#355782"></rect>
+            <text x="491" y="80" class="box-title">State</text>
+            <text x="468" y="97" class="box-sub">StateFlow / IORef</text>
+
+            <line x1="151" y1="80" x2="227" y2="80" stroke="#6ea8ff" stroke-width="2.4" marker-end="url(#arrowA)"></line>
+            <text x="163" y="68" class="arrow-label">events / commands</text>
+
+            <line x1="386" y1="80" x2="451" y2="80" stroke="#6ea8ff" stroke-width="2.4" marker-end="url(#arrowA)"></line>
+            <text x="391" y="68" class="arrow-label">mutate/update</text>
+
+            <line x1="455" y1="113" x2="151" y2="113" stroke="#7dc4ff" stroke-width="2.4" marker-end="url(#arrowA)"></line>
+            <text x="271" y="129" class="arrow-label">observe / render</text>
+          </svg>
+        </article>
+
+        <article class="panel diagram">
+          <h3>MVI in this project</h3>
+          <svg viewBox="0 0 600 210" role="img" aria-label="MVI architecture diagram">
+            <defs>
+              <marker id="arrowB" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#6ee7c8"></path>
+              </marker>
+            </defs>
+            <rect x="20" y="50" width="125" height="70" rx="10" fill="#113332" stroke="#2d8d85"></rect>
+            <text x="47" y="80" class="box-title">Intent</text>
+            <text x="32" y="97" class="box-sub">SetGreeting / Reset</text>
+
+            <rect x="215" y="35" width="180" height="100" rx="10" fill="#13433f" stroke="#2f9e91"></rect>
+            <text x="275" y="70" class="box-title">Reducer</text>
+            <text x="235" y="88" class="box-sub">pure: (intent, state) -> state</text>
+            <text x="237" y="104" class="box-sub">single transition path</text>
+
+            <rect x="470" y="50" width="110" height="70" rx="10" fill="#11332d" stroke="#2f8a78"></rect>
+            <text x="500" y="80" class="box-title">State</text>
+            <text x="478" y="97" class="box-sub">immutable model</text>
+
+            <line x1="146" y1="80" x2="211" y2="80" stroke="#6ee7c8" stroke-width="2.4" marker-end="url(#arrowB)"></line>
+            <line x1="396" y1="80" x2="466" y2="80" stroke="#6ee7c8" stroke-width="2.4" marker-end="url(#arrowB)"></line>
+            <line x1="470" y1="113" x2="146" y2="113" stroke="#84f2de" stroke-width="2.4" marker-end="url(#arrowB)"></line>
+            <text x="250" y="129" class="arrow-label">View renders from state</text>
+          </svg>
+        </article>
+      </div>
+
+      <article class="panel diagram">
+        <h3>Convergence map: MVVM -> MVI-style core</h3>
+        <svg viewBox="0 0 1000 190" role="img" aria-label="Convergence map diagram">
+          <defs>
+            <marker id="arrowC" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"></path>
+            </marker>
+          </defs>
+          <rect x="20" y="35" width="250" height="110" rx="11" fill="#1a2e50" stroke="#4f79bb"></rect>
+          <text x="86" y="66" class="box-title">MVVM Shell</text>
+          <text x="38" y="88" class="box-sub">ViewModel stores mutable state</text>
+          <text x="38" y="106" class="box-sub">methods update state in place</text>
+
+          <rect x="375" y="35" width="250" height="110" rx="11" fill="#1d384e" stroke="#4a8ea3"></rect>
+          <text x="406" y="66" class="box-title">Constrain updates</text>
+          <text x="391" y="88" class="box-sub">single immutable state</text>
+          <text x="391" y="106" class="box-sub">single reducer transition path</text>
+
+          <rect x="730" y="35" width="250" height="110" rx="11" fill="#1f3f39" stroke="#5a9f8f"></rect>
+          <text x="802" y="66" class="box-title">MVI-style Core</text>
+          <text x="748" y="88" class="box-sub">Intents + Reducer + State + View</text>
+          <text x="748" y="106" class="box-sub">pure transition-driven flow</text>
+
+          <line x1="272" y1="90" x2="370" y2="90" stroke="#60a5fa" stroke-width="2.8" marker-end="url(#arrowC)"></line>
+          <line x1="627" y1="90" x2="725" y2="90" stroke="#60a5fa" stroke-width="2.8" marker-end="url(#arrowC)"></line>
+        </svg>
+      </article>
+    </section>
+
+    <section>
+      <h2>Compare and Contrast</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Implementation</th>
+              <th>State handling</th>
+              <th>Update style</th>
+              <th>Test shape</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Haskell MVI</td>
+              <td>Immutable <code>Model</code></td>
+              <td>Pure <code>reduce</code> over intents</td>
+              <td>Pure logic tests without IO</td>
+            </tr>
+            <tr>
+              <td>Haskell MVVM</td>
+              <td><code>IORef ViewModel</code> shell</td>
+              <td><code>runCommand</code> reads/writes ref</td>
+              <td><code>applyCommand</code> pure; shell in IO</td>
+            </tr>
+            <tr>
+              <td>Kotlin MVVM</td>
+              <td><code>MutableStateFlow&lt;UiState&gt;</code></td>
+              <td>ViewModel methods mutate <code>_state.value</code></td>
+              <td>Repo tests use coroutines + flow reads</td>
+            </tr>
+            <tr>
+              <td>Kotlin MVI</td>
+              <td>Immutable <code>State</code></td>
+              <td>Pure <code>reduce(intent, state)</code></td>
+              <td>Reducer tests without ViewModel plumbing</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Historical Perspective: Alan Kay</h2>
+      <div class="panel">
+        <p>
+          Alan Kay's oft-quoted regret, that he "did not have C++ in mind" when naming object-oriented programming, is a reminder that OOP originally centered on messaging between autonomous entities rather than rigid class hierarchies and inheritance-heavy type systems. Much of modern OOP practice instead leans on explicitly defined, stateful coupling: objects hold references to other objects, dependency graphs are wired up front, and behavior often depends on mutable identity across those links. Pure functional architecture moves in the opposite direction: components relate through values, pure transformations, and compositional type signatures rather than hardcoded object references. In that model, relationships are implied by domain entities and algebraic contracts themselves, where signatures encode what can exist and how it can be transformed, producing systems that are easier to reason about, test, and evolve.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Project File Tree</h2>
+      <div class="panel">
+        <p class="muted">
+          Source-focused tree of the project structure (excluding <code>PROJECT_PROMPT.md</code> and <code>Generated_image.png</code>).
+        </p>
+        <ul class="tree">
+          <li><span class="folder">MVI/</span>
+            <ul>
+              <li><a class="file-link" data-file="index.html" href="index.html">index.html</a></li>
+              <li><a class="file-link" data-file="README.md" href="README.md">README.md</a></li>
+              <li><a class="file-link" data-file="REPORT.md" href="REPORT.md">REPORT.md</a></li>
+              <li><span class="folder">haskell/</span>
+                <ul>
+                  <li><span class="folder">mvi/</span>
+                    <ul>
+                      <li><a class="file-link" data-file="haskell/mvi/Main.hs" href="haskell/mvi/Main.hs">Main.hs</a></li>
+                      <li><a class="file-link" data-file="haskell/mvi/mvi.cabal" href="haskell/mvi/mvi.cabal">mvi.cabal</a></li>
+                      <li><a class="file-link" data-file="haskell/mvi/package.yaml" href="haskell/mvi/package.yaml">package.yaml</a></li>
+                      <li><a class="file-link" data-file="haskell/mvi/stack.yaml" href="haskell/mvi/stack.yaml">stack.yaml</a></li>
+                      <li><a class="file-link" data-file="haskell/mvi/stack.yaml.lock" href="haskell/mvi/stack.yaml.lock">stack.yaml.lock</a></li>
+                      <li><span class="folder">src/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvi/src/App.hs" href="haskell/mvi/src/App.hs">App.hs</a></li>
+                          <li><a class="file-link" data-file="haskell/mvi/src/Acceptance.hs" href="haskell/mvi/src/Acceptance.hs">Acceptance.hs</a></li>
+                          <li><a class="file-link" data-file="haskell/mvi/src/Spec.hs" href="haskell/mvi/src/Spec.hs">Spec.hs</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">app/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvi/app/Main.hs" href="haskell/mvi/app/Main.hs">Main.hs</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">test/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvi/test/Spec.hs" href="haskell/mvi/test/Spec.hs">Spec.hs</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="folder">mvvm/</span>
+                    <ul>
+                      <li><a class="file-link" data-file="haskell/mvvm/Main.hs" href="haskell/mvvm/Main.hs">Main.hs</a></li>
+                      <li><a class="file-link" data-file="haskell/mvvm/mvvm.cabal" href="haskell/mvvm/mvvm.cabal">mvvm.cabal</a></li>
+                      <li><a class="file-link" data-file="haskell/mvvm/package.yaml" href="haskell/mvvm/package.yaml">package.yaml</a></li>
+                      <li><a class="file-link" data-file="haskell/mvvm/stack.yaml" href="haskell/mvvm/stack.yaml">stack.yaml</a></li>
+                      <li><a class="file-link" data-file="haskell/mvvm/stack.yaml.lock" href="haskell/mvvm/stack.yaml.lock">stack.yaml.lock</a></li>
+                      <li><span class="folder">src/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvvm/src/App.hs" href="haskell/mvvm/src/App.hs">App.hs</a></li>
+                          <li><a class="file-link" data-file="haskell/mvvm/src/Spec.hs" href="haskell/mvvm/src/Spec.hs">Spec.hs</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">app/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvvm/app/Main.hs" href="haskell/mvvm/app/Main.hs">Main.hs</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">test/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="haskell/mvvm/test/Spec.hs" href="haskell/mvvm/test/Spec.hs">Spec.hs</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li><span class="folder">kotlin/</span>
+                <ul>
+                  <li><span class="folder">mvi/</span>
+                    <ul>
+                      <li><a class="file-link" data-file="kotlin/mvi/build.gradle.kts" href="kotlin/mvi/build.gradle.kts">build.gradle.kts</a></li>
+                      <li><a class="file-link" data-file="kotlin/mvi/settings.gradle.kts" href="kotlin/mvi/settings.gradle.kts">settings.gradle.kts</a></li>
+                      <li><span class="folder">src/main/kotlin/mvi/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="kotlin/mvi/src/main/kotlin/mvi/App.kt" href="kotlin/mvi/src/main/kotlin/mvi/App.kt">App.kt</a></li>
+                          <li><a class="file-link" data-file="kotlin/mvi/src/main/kotlin/mvi/Main.kt" href="kotlin/mvi/src/main/kotlin/mvi/Main.kt">Main.kt</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">src/test/kotlin/mvi/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="kotlin/mvi/src/test/kotlin/mvi/ReducerTest.kt" href="kotlin/mvi/src/test/kotlin/mvi/ReducerTest.kt">ReducerTest.kt</a></li>
+                          <li><a class="file-link" data-file="kotlin/mvi/src/test/kotlin/mvi/AcceptanceTest.kt" href="kotlin/mvi/src/test/kotlin/mvi/AcceptanceTest.kt">AcceptanceTest.kt</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                  <li><span class="folder">mvvm/</span>
+                    <ul>
+                      <li><a class="file-link" data-file="kotlin/mvvm/build.gradle.kts" href="kotlin/mvvm/build.gradle.kts">build.gradle.kts</a></li>
+                      <li><a class="file-link" data-file="kotlin/mvvm/settings.gradle.kts" href="kotlin/mvvm/settings.gradle.kts">settings.gradle.kts</a></li>
+                      <li><span class="folder">src/main/kotlin/mvvm/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="kotlin/mvvm/src/main/kotlin/mvvm/ViewModel.kt" href="kotlin/mvvm/src/main/kotlin/mvvm/ViewModel.kt">ViewModel.kt</a></li>
+                          <li><a class="file-link" data-file="kotlin/mvvm/src/main/kotlin/mvvm/Main.kt" href="kotlin/mvvm/src/main/kotlin/mvvm/Main.kt">Main.kt</a></li>
+                        </ul>
+                      </li>
+                      <li><span class="folder">src/test/kotlin/mvvm/</span>
+                        <ul>
+                          <li><a class="file-link" data-file="kotlin/mvvm/src/test/kotlin/mvvm/ViewModelTest.kt" href="kotlin/mvvm/src/test/kotlin/mvvm/ViewModelTest.kt">ViewModelTest.kt</a></li>
+                          <li><a class="file-link" data-file="kotlin/mvvm/src/test/kotlin/mvvm/AcceptanceTest.kt" href="kotlin/mvvm/src/test/kotlin/mvvm/AcceptanceTest.kt">AcceptanceTest.kt</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+        <div class="viewer-actions">
+          <a id="openRawLink" class="btn" href="#" target="_blank" rel="noopener noreferrer">Open raw in new tab</a>
+          <span id="viewerMeta" class="muted">Click any file name to inspect it below.</span>
+        </div>
+        <pre id="fileViewer">No file selected.</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>Conclusion</h2>
+      <div class="panel">
+        <p>
+          The experiment supports the revised claim: in these minimal Haskell and Kotlin implementations,
+          MVVM converges to an MVI-style architecture when state transitions are constrained to a pure,
+          intent-driven, unidirectional model. The strongest evidence is structural: both styles reduce
+          to the same transition core once mutable shells are removed or minimized.
+        </p>
+        <p>
+          This should be read as a scoped engineering result for this project, not as a blanket statement
+          that all MVVM systems are equivalent to all MVI systems.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>References</h2>
+      <div class="panel">
+        <ul class="refs">
+          <li><a href="PROJECT_PROMPT.md">PROJECT_PROMPT.md</a> - experiment objective, architecture definitions, and success criteria.</li>
+          <li><a href="REPORT.md">REPORT.md</a> - revised analysis and scoped findings.</li>
+          <li><a href="haskell/mvi/src/App.hs">haskell/mvi/src/App.hs</a> and <a href="haskell/mvvm/src/App.hs">haskell/mvvm/src/App.hs</a> - Haskell reference implementations.</li>
+          <li><a href="kotlin/mvi/src/main/kotlin/mvi/App.kt">kotlin/mvi/src/main/kotlin/mvi/App.kt</a> and <a href="kotlin/mvvm/src/main/kotlin/mvvm/ViewModel.kt">kotlin/mvvm/src/main/kotlin/mvvm/ViewModel.kt</a> - Kotlin reference implementations.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const links = document.querySelectorAll(".file-link");
+      const viewer = document.getElementById("fileViewer");
+      const meta = document.getElementById("viewerMeta");
+      const openRaw = document.getElementById("openRawLink");
+
+      async function showFile(path) {
+        openRaw.href = path;
+        meta.textContent = "Loading " + path + "...";
+        try {
+          const response = await fetch(path, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          const text = await response.text();
+          viewer.textContent = text;
+          meta.textContent = path + " (" + text.split("\n").length + " lines)";
+        } catch (error) {
+          viewer.textContent =
+            "Unable to load file: " + path + "\n\n" +
+            "Reason: " + error.message + "\n\n" +
+            "Tip: keep using an HTTP server (localhost or GitHub Pages), not file://";
+          meta.textContent = path;
+        }
+      }
+
+      links.forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          const path = link.getAttribute("data-file");
+          if (path) {
+            showFile(path);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

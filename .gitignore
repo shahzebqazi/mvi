@@ -1,0 +1,13 @@
+.DS_Store
+
+# Kotlin / Gradle
+**/.gradle/
+**/build/
+
+# Haskell build artifacts
+**/dist-newstyle/
+**/.stack-work/
+
+# Editors
+.idea/
+.vscode/
