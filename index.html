@@ -108,9 +108,15 @@
       background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 100%);
     }
 
-    .box-title { fill: #234a77; font-size: 13px; font-weight: 600; }
-    .box-sub { fill: #4b6f97; font-size: 11px; }
-    .arrow-label { fill: #476b95; font-size: 10px; }
+    .box-title { fill: #1d3f66; font-size: 15px; font-weight: 700; }
+    .box-sub { fill: #2a4f79; font-size: 13px; font-weight: 600; }
+    .arrow-label { fill: #244b76; font-size: 12px; font-weight: 700; }
+    .figure-caption {
+      margin-top: 8px;
+      font-size: 0.93rem;
+      color: #355e88;
+      font-weight: 700;
+    }
 
     table {
       width: 100%;
@@ -271,7 +277,7 @@
     <section>
       <h2>Architecture Diagrams</h2>
       <div class="grid-2">
-        <article class="panel diagram">
+        <figure class="panel diagram">
           <h3>MVVM in this project</h3>
           <svg viewBox="0 0 600 210" role="img" aria-label="MVVM architecture diagram">
             <defs>
@@ -301,9 +307,10 @@
             <line x1="455" y1="113" x2="151" y2="113" stroke="#7dc4ff" stroke-width="2.4" marker-end="url(#arrowA)"></line>
             <text x="271" y="129" class="arrow-label">observe / render</text>
           </svg>
-        </article>
+          <figcaption class="figure-caption">Figure 1. MVVM architecture in this experiment.</figcaption>
+        </figure>
 
-        <article class="panel diagram">
+        <figure class="panel diagram">
           <h3>MVI in this project</h3>
           <svg viewBox="0 0 600 210" role="img" aria-label="MVI architecture diagram">
             <defs>
@@ -329,10 +336,11 @@
             <line x1="470" y1="113" x2="146" y2="113" stroke="#84f2de" stroke-width="2.4" marker-end="url(#arrowB)"></line>
             <text x="250" y="129" class="arrow-label">View renders from state</text>
           </svg>
-        </article>
+          <figcaption class="figure-caption">Figure 2. MVI architecture in this experiment.</figcaption>
+        </figure>
       </div>
 
-      <article class="panel diagram">
+      <figure class="panel diagram">
         <h3>Convergence map: MVVM -> MVI-style core</h3>
         <svg viewBox="0 0 1000 190" role="img" aria-label="Convergence map diagram">
           <defs>
@@ -358,7 +366,8 @@
           <line x1="272" y1="90" x2="370" y2="90" stroke="#60a5fa" stroke-width="2.8" marker-end="url(#arrowC)"></line>
           <line x1="627" y1="90" x2="725" y2="90" stroke="#60a5fa" stroke-width="2.8" marker-end="url(#arrowC)"></line>
         </svg>
-      </article>
+        <figcaption class="figure-caption">Figure 3. Convergence path from MVVM shell to MVI-style core.</figcaption>
+      </figure>
     </section>
 
     <section>
