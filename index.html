@@ -549,6 +549,19 @@
           to the same transition core once mutable shells are removed or minimized.
         </p>
         <p>
+          As state types become richer (multiple renderable items, UI toggles, async flags, and validation
+          states), local complexity rises in both approaches because there are more fields and transitions
+          to model. MVI tends to centralize that complexity in explicit intents and reducer cases, while
+          MVVM often distributes it across ViewModel methods and observers.
+        </p>
+        <h3>Advantages and disadvantages by implementation</h3>
+        <ul>
+          <li><strong>Haskell MVI:</strong> Advantage: strongest reasoning clarity and testability via pure reducer + immutable model. Disadvantage: intent/reducer branching grows as state space expands.</li>
+          <li><strong>Haskell MVVM:</strong> Advantage: practical pure-core plus IO-shell split with incremental migration path. Disadvantage: mutable shell can introduce hidden update paths without strict discipline.</li>
+          <li><strong>Kotlin MVVM:</strong> Advantage: ergonomic UI integration and familiar StateFlow-based workflow. Disadvantage: update logic can fragment across methods/observers as features grow.</li>
+          <li><strong>Kotlin MVI:</strong> Advantage: centralized transitions improve predictability, debugging, and reducer-focused tests. Disadvantage: more boilerplate and larger reducer surfaces for richer domains.</li>
+        </ul>
+        <p>
           This should be read as a scoped engineering result for this project, not as a blanket statement
           that all MVVM systems are equivalent to all MVI systems.
         </p>

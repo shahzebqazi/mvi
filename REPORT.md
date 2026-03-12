@@ -97,6 +97,22 @@ Conceptually they match: single state, explicit intents, pure reducer, view from
 - **Scoped hypothesis confirmed**: In both Haskell and Kotlin examples in this repo, turning MVVM into a stateless, unidirectional design (single source of truth, pure reducer transitions, view from state) produces an MVI-style architecture.
 - **MVI** emphasizes one state, explicit intents, pure transitions, and view as a function of state (stateless core, effects at boundaries).
 - **MVVM** emphasizes a stateful ViewModel observed by the view; when that model is constrained to reducer-style transitions, the core behavior converges toward MVI.
+- **Richer state types increase complexity**: As models expand (multiple renderable items, UI toggles, async flags, validation states), both styles become more complex. MVI tends to centralize this complexity in reducer/intent branches, while MVVM tends to distribute it across ViewModel methods and observer interactions.
+
+**Advantages and disadvantages by implementation**
+
+- **Haskell MVI**
+  - Advantage: highest reasoning clarity (pure reducer + immutable model + explicit intents), strongest testability.
+  - Disadvantage: reducer and intent definitions can grow quickly as state space expands.
+- **Haskell MVVM**
+  - Advantage: practical separation of pure transition logic (`applyCommand`) from IO shell (`IORef`), easy incremental evolution from imperative style.
+  - Disadvantage: mutable shell introduces coordination risk and hidden update paths if discipline weakens.
+- **Kotlin MVVM**
+  - Advantage: ergonomic for UI frameworks; straightforward observable state via `StateFlow`; familiar developer workflow.
+  - Disadvantage: update logic can fragment across methods as features grow, making global state transition reasoning harder.
+- **Kotlin MVI**
+  - Advantage: explicit, centralized state transitions improve predictability, debuggability, and reducer-focused testing.
+  - Disadvantage: boilerplate and reducer branching overhead increase with richer domain/UI state.
 
 The code in this repo illustrates this convergence and the trade-offs between stateful MVVM shells and stateless/unidirectional MVI-style cores.
 
